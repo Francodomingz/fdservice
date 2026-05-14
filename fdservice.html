@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FD Service — Tu PC en buenas manos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #080b08;
+      --bg2: #0d120d;
+      --green: #00ff41;
+      --green-dim: #00c832;
+      --green-dark: #003d10;
+      --green-glow: rgba(0,255,65,0.15);
+      --white: #e8f5e8;
+      --gray: #4a5c4a;
+      --mono: 'Share Tech Mono', monospace;
+      --display: 'Exo 2', sans-serif;
+      --body: 'Rajdhani', sans-serif;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--body);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Grid background */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(8,11,8,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,255,65,0.15);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      color: var(--green);
+      text-shadow: 0 0 20px var(--green);
+      letter-spacing: 2px;
+    }
+
+    .nav-logo span { color: var(--white); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 36px;
+    }
+
+    nav ul a {
+      font-family: var(--body);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--gray);
+      text-decoration: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    nav ul a:hover {
+      color: var(--green);
+      text-shadow: 0 0 10px var(--green);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,65,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.7; }
+    }
+
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--green);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -2px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+
+    .hero h1 .fd {
+      color: var(--green);
+      text-shadow: 0 0 40px rgba(0,255,65,0.6), 0 0 80px rgba(0,255,65,0.2);
+    }
+
+    .hero h1 .service {
+      color: var(--white);
+      display: block;
+      font-weight: 300;
+      font-size: 0.45em;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .hero-sub {
+      font-family: var(--body);
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--gray);
+      margin-top: 28px;
+      letter-spacing: 2px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-sub em {
+      color: var(--green);
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .hero-cta {
+      margin-top: 48px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 16px 44px;
+      border: 2px solid var(--green);
+      color: var(--bg);
+      background: var(--green);
+      font-family: var(--mono);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--green);
+      box-shadow: 0 0 30px rgba(0,255,65,0.4);
+    }
+
+    .btn-secondary {
+      display: inline-block;
+      margin-left: 16px;
+      padding: 16px 44px;
+      border: 2px solid var(--gray);
+      color: var(--gray);
+      background: transparent;
+      font-family: var(--mono);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── STATS BAR ── */
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      border-top: 1px solid rgba(0,255,65,0.1);
+      border-bottom: 1px solid rgba(0,255,65,0.1);
+      background: rgba(0,255,65,0.03);
+    }
+
+    .stat-item {
+      flex: 1;
+      max-width: 220px;
+      text-align: center;
+      padding: 32px 24px;
+      border-right: 1px solid rgba(0,255,65,0.1);
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--display);
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: 0 0 20px rgba(0,255,65,0.4);
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--gray);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--green);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-title span { color: var(--green); }
+
+    .section-desc {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--gray);
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 60px;
+    }
+
+    /* ── SERVICES GRID ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+    }
+
+    .service-card {
+      background: var(--bg2);
+      border: 1px solid rgba(0,255,65,0.08);
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+      cursor: default;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 0;
+      background: var(--green);
+      transition: height 0.4s ease;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .service-card:hover::before { height: 100%; }
+    .service-card:hover {
+      border-color: rgba(0,255,65,0.3);
+      transform: translateY(-4px);
+    }
+
+    .service-card:hover .service-icon { text-shadow: 0 0 20px var(--green); }
+
+    .service-icon {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      display: block;
+      transition: text-shadow 0.3s;
+    }
+
+    .service-name {
+      font-family: var(--display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .service-desc {
+      font-size: 0.95rem;
+      color: var(--gray);
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .service-tag {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 4px 12px;
+      background: var(--green-dark);
+      border: 1px solid rgba(0,255,65,0.2);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+    }
+
+    /* ── WHY US ── */
+    .why-section {
+      background: linear-gradient(135deg, rgba(0,255,65,0.04) 0%, transparent 60%);
+      border-top: 1px solid rgba(0,255,65,0.1);
+      border-bottom: 1px solid rgba(0,255,65,0.1);
+      max-width: 100%;
+      padding: 100px 48px;
+    }
+
+    .why-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .why-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .why-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 20px;
+      border: 1px solid rgba(0,255,65,0.06);
+      background: rgba(0,0,0,0.2);
+      transition: border-color 0.3s;
+    }
+
+    .why-item:hover { border-color: rgba(0,255,65,0.25); }
+
+    .why-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .why-text h4 {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .why-text p {
+      font-size: 0.9rem;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+
+    /* ── CONTACT ── */
+    .contact-section {
+      text-align: center;
+      padding: 120px 48px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .contact-section .section-desc {
+      max-width: 100%;
+      text-align: center;
+      margin: 0 auto 48px;
+    }
+
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 52px;
+      background: var(--green);
+      color: var(--bg);
+      font-family: var(--display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-decoration: none;
+      letter-spacing: 1px;
+      clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+      transition: all 0.3s;
+      box-shadow: 0 0 40px rgba(0,255,65,0.3);
+    }
+
+    .whatsapp-btn:hover {
+      background: var(--green-dim);
+      box-shadow: 0 0 60px rgba(0,255,65,0.5);
+      transform: scale(1.03);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid rgba(0,255,65,0.08);
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--green);
+      text-shadow: 0 0 10px var(--green);
+      margin-bottom: 8px;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--gray);
+      letter-spacing: 1px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      position: relative;
+      z-index: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,65,0.3), transparent);
+      margin: 0 48px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      nav ul { gap: 20px; }
+      nav ul a { font-size: 0.8rem; }
+      section { padding: 60px 20px; }
+      .why-section { padding: 60px 20px; }
+      .why-inner { grid-template-columns: 1fr; gap: 40px; }
+      .contact-section { padding: 80px 20px; }
+      .stat-item { padding: 24px 12px; }
+      .stats { flex-wrap: wrap; }
+      .btn-secondary { margin-left: 0; margin-top: 12px; display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo"><span>FD</span>_SERVICE</div>
+    <ul>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <p class="hero-tag">// Soporte técnico profesional</p>
+    <h1>
+      <span class="fd">FD</span>
+      <span class="service">Service</span>
+    </h1>
+    <p class="hero-sub">Tu PC en <em>buenas manos</em> — Rápido, confiable y a domicilio</p>
+    <div class="hero-cta">
+      <a href="#contacto" class="btn-primary">Contactar ahora</a>
+      <a href="#servicios" class="btn-secondary">Ver servicios</a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Compromiso</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">24hs</div>
+      <div class="stat-label">Respuesta rápida</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Servicios disponibles</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">🏠</div>
+      <div class="stat-label">A domicilio</div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section id="servicios">
+    <p class="section-label">// 01 — Lo que hacemos</p>
+    <h2 class="section-title">Nuestros <span>Servicios</span></h2>
+    <p class="section-desc">Soluciones rápidas y confiables para todos los problemas de tu PC o laptop.</p>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <span class="service-icon">🖥️</span>
+        <div class="service-name">Optimización de PC</div>
+        <div class="service-desc">Tu PC va lenta o tarda en arrancar. La dejamos como nueva: limpieza de software, inicio rápido y máximo rendimiento.</div>
+        <span class="service-tag">MUY SOLICITADO</span>
+      </div>
+      <div class="service-card">
+        <span class="service-icon">💿</span>
+        <div class="service-name">Instalación de Windows</div>
+        <div class="service-desc">Instalamos Windows 10 u 11 desde cero. Formato completo o sobre el sistema actual, con todos los drivers actualizados.</div>
+        <span class="service-tag">WIN 10 / WIN 11</span>
+      </div>
+      <div class="service-card">
+        <span class="service-icon">📦</span>
+        <div class="service-name">Paquete Office</div>
+        <div class="service-desc">Instalación y configuración completa de Microsoft Office. Word, Excel, PowerPoint y más, listos para usar.</div>
+        <span class="service-tag">OFFICE COMPLETO</span>
+      </div>
+      <div class="service-card">
+        <span class="service-icon">🔑</span>
+        <div class="service-name">Activación Windows / Office</div>
+        <div class="service-desc">¿Tu Windows o Office muestra que no está activado? Lo resolvemos de forma rápida y definitiva.</div>
+        <span class="service-tag">RÁPIDO</span>
+      </div>
+      <div class="service-card">
+        <span class="service-icon">🦠</span>
+        <div class="service-name">Eliminación de Virus</div>
+        <div class="service-desc">Escaneamos y eliminamos virus, malware, adware y cualquier amenaza que tenga tu equipo. Dejamos todo limpio y protegido.</div>
+        <span class="service-tag">MUY SOLICITADO</span>
+      </div>
+      <div class="service-card">
+        <span class="service-icon">🗂️</span>
+        <div class="service-name">Recuperación de Datos</div>
+        <div class="service-desc">¿Borraste archivos importantes o tu PC no arranca? Recuperamos fotos, documentos y todo lo que necesitás.</div>
+        <span class="service-tag">FOTOS / DOCS</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- WHY -->
+  <div class="why-section" id="nosotros">
+    <div class="why-inner">
+      <div>
+        <p class="section-label">// 02 — Por qué elegirnos</p>
+        <h2 class="section-title">Franco <span>Domínguez</span></h2>
+        <p class="section-desc">Técnico de confianza en tu zona. Sin vueltas, sin sorpresas. Trabajo bien hecho.</p>
+      </div>
+      <ul class="why-list">
+        <li class="why-item">
+          <span class="why-icon">⚡</span>
+          <div class="why-text">
+            <h4>Respuesta en el día</h4>
+            <p>Contactanos y coordinamos rápido. Sin esperas eternas ni turnos imposibles.</p>
+          </div>
+        </li>
+        <li class="why-item">
+          <span class="why-icon">🏠</span>
+          <div class="why-text">
+            <h4>Vamos a tu domicilio</h4>
+            <p>No tenés que salir ni trasladar nada. Trabajamos en tu casa o negocio.</p>
+          </div>
+        </li>
+        <li class="why-item">
+          <span class="why-icon">✅</span>
+          <div class="why-text">
+            <h4>Precio justo y claro</h4>
+            <p>Te decimos el precio antes de empezar. Sin costos ocultos ni sorpresas al final.</p>
+          </div>
+        </li>
+        <li class="why-item">
+          <span class="why-icon">💬</span>
+          <div class="why-text">
+            <h4>Trato cercano</h4>
+            <p>Te explicamos qué tiene tu PC en términos simples. Sin tecnicismos innecesarios.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <section id="contacto">
+    <div class="contact-section">
+      <p class="section-label">// 03 — Hablemos</p>
+      <h2 class="section-title">¿Tu PC tiene <span>problemas</span>?</h2>
+      <p class="section-desc">Escribinos por WhatsApp y te respondemos rápido. Contanos qué le pasa a tu equipo y coordinamos enseguida.</p>
+      <a href="https://wa.me/5493XXXXXXXXX?text=Hola%20Franco!%20Vi%20tu%20p%C3%A1gina%20y%20necesito%20ayuda%20con%20mi%20PC" class="whatsapp-btn" target="_blank">
+        <span>💬</span> Escribir por WhatsApp
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">FD_SERVICE</div>
+    <p>© 2026 — Tu PC en buenas manos · Servicio a domicilio</p>
+  </footer>
+
+</body>
+</html>
